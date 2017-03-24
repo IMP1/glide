@@ -16,7 +16,7 @@ require 'socket'
 require 'uri'
 require 'net/http'
 require 'net/https'
-require "openssl"
+require 'openssl'
 require 'json'
 require 'date'
 
@@ -56,7 +56,7 @@ class WebServer
         # sslContext.key = OpenSSL::PKey::RSA.new(File.open("priv.pem"))
         # @sslServer = OpenSSL::SSL::SSLServer.new(server, sslContext)
 
-        puts "Listing on localhost:#{@port}..." 
+        puts "[WebServer] Listing on localhost:#{@port}..."
         @thread = Thread.new { listen }
         @thread.join if block
     end
@@ -71,15 +71,14 @@ class WebServer
     end
 
     def handle_connection(socket)
-        puts
-        puts "Connected to socket: #{socket}"
+        puts "[WebServer] Connected to socket: #{socket}"
         request = socket.gets
         handle_request(socket, request)
         socket.close
     end
 
     def handle_request(socket, request)
-        puts "Received request: #{request}"
+        puts "[WebServer] Received request: #{request}"
         request_method, *request_parts = request.split(" ")
         path = request_parts[0].split('/')
         case request_method
