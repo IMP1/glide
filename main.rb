@@ -7,6 +7,7 @@ webserver = WebServer.new(2345)
 webserver.begin
 
 Tests.test_rhtml
+Tests.test_post
 
 # puts
 # loop do
