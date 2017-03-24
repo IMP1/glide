@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 module Tests
 
     def self.test_post

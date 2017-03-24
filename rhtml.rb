@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 module RHTML
 
     def self.p(arg)

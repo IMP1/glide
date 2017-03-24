@@ -1,5 +1,3 @@
-#!/usr/bin/env ruby
-
 ##
 ## Cheatsheet for Ruby HTTP stuff.
 ## http://www.rubyinside.com/nethttp-cheat-sheet-2940.html
