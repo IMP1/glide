@@ -21,6 +21,7 @@ require 'json'
 require 'date'
 
 require_relative 'rhtml'
+require_relative 'glide_api'
 
 Thread.abort_on_exception=true
 
@@ -107,11 +108,13 @@ class WebServer
             break if line[0] == ""
             headers[line[0].chop] = line[1].strip
         end
-        data = socket.read(headers["Content-Length"].to_i)
+        post_body = socket.read(headers["Content-Length"].to_i)
 
-        puts data
+        data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
+        GlideAPI.handle_command(path[1], "create", data)
 
-        socket.print http_header(204, "No Content")
+        # TODO: handle data, create new X if valid, returning location to new X.
+        socket.print http_header(201, "Created", {"Location"=>"/workflows/12"})
         socket.print EMPTY_LINE
     end
 
@@ -131,7 +134,7 @@ class WebServer
 
     def serve_file(socket, filepath)
         filename = File.join(WEB_ROOT, *clean_file_path(filepath))
-        if !File.exists?(filename)
+        unless File.exists?(filename)
             file_not_found(socket)
             return
         end
@@ -142,7 +145,7 @@ class WebServer
             file_string = RHTML.evaluate(file_string)
         end
 
-        socket.print http_header(200, "OK", 'text/xml', file_string.bytesize)
+        socket.print http_header(200, "OK", {"Content-Type"=>'text/xml', "Content-Length"=>file_string.bytesize})
         socket.print EMPTY_LINE
         socket.print file_string     
     end
@@ -158,15 +161,16 @@ class WebServer
 
     def file_not_found(socket)
         message = "File not found\n"
-        socket.print http_header(404, "Not Found", "text/plain", message.size)
+        socket.print http_header(404, "Not Found", {"Content-Type"=>"text/plain", "Content-Length"=>message.size})
         socket.print EMPTY_LINE
         socket.print message
     end
 
-    def http_header(status_code, status_message, content_type=nil, content_length=nil)
+    def http_header(status_code, status_message, headers={})
         response =  "HTTP/1.1 #{status_code} #{status_message}\r\n"
-        response += "Content-Type: #{content_type}\r\n"     if !content_type.nil?
-        response += "Content-Length: #{content_length}\r\n" if !content_length.nil?
+        headers.each do |key, value|
+            response += "#{key}: #{value}\r\n"
+        end
         response += "Connection: close\r\n"
         response
     end
