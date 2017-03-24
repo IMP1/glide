@@ -1,5 +1,7 @@
 module RHTML
 
+    SEPARATOR = " "
+
     def self.p(arg)
         Thread.current[:current_output].push arg
     end
@@ -10,7 +12,7 @@ module RHTML
                 Thread.current[:current_output] = [];
                 code = m[6..-8]
                 binding.eval(code)
-                string = string.sub(m, Thread.current[:current_output].join(" "))
+                string = string.sub(m, Thread.current[:current_output].join(SEPARATOR))
             end
         end
         process.join
