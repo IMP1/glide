@@ -1,9 +1,11 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title><ruby>p "Hello"</ruby></title>
-</head>
-<body>
+<ruby include="test_layout.rml">
+<ruby block-begin="header">
+<ruby block-super>
+<h2>
+    Title 2
+</h2>
+<ruby block-end="header">
+<ruby block-begin="main">
     <ruby>
         @foo = 9
     </ruby>
@@ -17,4 +19,4 @@
             p "green bottles on a wall"
         </ruby>
     </div>
-</body>
+<ruby block-end="main">

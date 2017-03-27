@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title><ruby>p "Hello"</ruby></title>
+</head>
+<body>
+    <header>
+        <ruby block-begin="header">
+        <h1>Title 1</h1>
+        <ruby block-end="header">
+    </header>
+    <main>
+        <ruby block-begin="main">
+        <h1></h1>
+        <ruby block-end="main">
+    </main>
+</body>
+</html>
