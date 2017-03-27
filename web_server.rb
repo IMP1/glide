@@ -20,7 +20,7 @@ require 'openssl'
 require 'json'
 require 'date'
 
-require_relative 'rhtml'
+require_relative 'rml'
 require_relative 'glide_api'
 
 Thread.abort_on_exception=true
@@ -29,6 +29,27 @@ class WebServer
 
     WEB_ROOT   = "."
     EMPTY_LINE =  "\r\n"
+
+    def self.file_contents(filepath)
+        filename = File.join(WEB_ROOT, *clean_file_path(filepath))
+        if File.exists?(filename)
+            return File.read(filename)
+        else
+            return nil
+        end
+    end
+
+    def self.clean_file_path(filepath)
+        if filepath.is_a?(String)
+            filepath = filepath.split("/")
+        end
+        clean = []
+        filepath.each do |part|
+            next if part.empty? || part == '.'
+            part == '..' ? clean.pop : clean.push(part)
+        end
+        return clean
+    end
 
     def initialize(port)
         @port = port
@@ -132,30 +153,19 @@ class WebServer
     end
 
     def serve_file(socket, filepath)
-        filename = File.join(WEB_ROOT, *clean_file_path(filepath))
-        unless File.exists?(filename)
+        file_string = WebServer.file_contents(filepath)
+        if file_string.nil?
             file_not_found(socket)
             return
         end
 
-        file_string = File.read(filename)
-
-        if filename.end_with? ".rhtml"
-            file_string = RHTML.evaluate(file_string)
+        if filepath.last.end_with? ".rml"
+            file_string = RMLParser.new(file_string, filepath.last).parse
         end
 
         socket.print http_header(200, "OK", {"Content-Type"=>'text/xml', "Content-Length"=>file_string.bytesize})
         socket.print EMPTY_LINE
         socket.print file_string     
-    end
-
-    def clean_file_path(filepath)
-        clean = []
-        filepath.each do |part|
-            next if part.empty? || part == '.'
-            part == '..' ? clean.pop : clean.push(part)
-        end
-        return clean
     end
 
     def file_not_found(socket)
