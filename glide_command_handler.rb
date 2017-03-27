@@ -5,7 +5,7 @@ module GlideCommandHandler
     @logger = Logger.new("GlideAPI")
 
     def self.handle_command(command, *args)
-        puts "[GlideAPI] Recieved command '#{command}'."
+        @logger.log "Recieved command '#{command}'."
         case command
         when "workflows"
             workflow_command(args[0], *args[1..-1])
@@ -15,7 +15,7 @@ module GlideCommandHandler
     end
 
     def self.workflow_command(command, *args)
-        puts "[GlideAPI] Recieved Workflow command '#{command}'."
+        @logger.log "Recieved Workflow command '#{command}'."
         case command
         when "create"
             Workflow.create_workflow(args[0])

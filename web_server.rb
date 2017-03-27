@@ -126,7 +126,7 @@ class WebServer
         new_id = GlideCommandHandler.handle_command(path[1], "create", data)
 
         # TODO: handle data, create new X if valid, returning location to new X.
-        socket.print http_header(201, "Created", {"Location"=>"/#{paths[1]}/#{new_id}"})
+        socket.print http_header(201, "Created", {"Location"=>"/#{path[1]}/#{new_id}"})
         socket.print EMPTY_LINE
     end
 

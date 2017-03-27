@@ -11,6 +11,7 @@ module Tests
                 request.set_form_data({"q" => "My query", "per_page" => "50"})
                 response = http.request(request)
                 p response
+                puts response.body
             end
             sleep(0.5)    
         rescue Exception => e
