@@ -1,6 +1,8 @@
 require_relative 'workflow'
 
-module GlideAPI
+module GlideCommandHandler
+
+    @logger = Logger.new("GlideAPI")
 
     def self.handle_command(command, *args)
         puts "[GlideAPI] Recieved command '#{command}'."
