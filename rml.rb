@@ -10,8 +10,13 @@ class RMLParser
         @logger = Logger.new("RML Parser")
     end
 
-    def print_to_html(arg)
-        @current_output.push(arg)
+    def parse
+        @logger.push("Beginning Parse...")
+        add_included_files
+        handle_blocks
+        eval_ruby
+        @logger.pop("Successful Parse.")
+        return @string
     end
 
     def add_included_files
@@ -22,6 +27,7 @@ class RMLParser
                 @logger.log("Could not find #{filename}.", Logger::ERROR)
             else
                 import = RMLParser.new(include_string, filename)
+                # TODO: do any imported files need more processing?
                 @string.sub!(m, import.add_included_files)
             end
         end
@@ -66,19 +72,8 @@ class RMLParser
         return @string
     end
 
-    def parse
-        @logger.push("Beginning Parse...")
-
-        File.open("test_#{@filename}_0_initial_file.html", 'w') { |file| file.write(@string) }
-        add_included_files
-        File.open("test_#{@filename}_1_included_files.html", 'w') { |file| file.write(@string) }
-        handle_blocks
-        File.open("test_#{@filename}_2_blocked_files.html", 'w') { |file| file.write(@string) }
-        eval_ruby
-        File.open("test_#{@filename}_3_evaluated_files.html", 'w') { |file| file.write(@string) }
-
-        @logger.pop("Successful Parse.")
-        return @string
+    def print_to_html(arg)
+        @current_output.push(arg)
     end
 
 end
