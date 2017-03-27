@@ -8,7 +8,7 @@ class Logger
 
     attr_reader :last_message
     
-    @@depth = 0
+    @@depths = {}
 
     def initialize(source, output=$stdout)
         @source = source
@@ -16,6 +16,7 @@ class Logger
         @padding = 4
         @last_message = ""
         @importance_level = DEBUG
+        @@depths[@out] ||= 0
     end
 
     def set_level(level)
@@ -24,11 +25,12 @@ class Logger
 
     def push(message, importance=INFORMATION)
         log_message(message, importance)
-        @@depth += 1
+        @@depths[@out] += 1
     end
 
     def pop(message, importance=INFORMATION)
-        @@depth = [@@depth - 1, 0].max
+        @@depths[@out] -= 1
+        @@depths[@out] = 0 if @@depths[@out] < 0
         log_message(message, importance)
     end
 
@@ -38,7 +40,7 @@ class Logger
 
     def log_message(message, importance)
         return if importance > @importance_level
-        @out.puts "[#{@source}]" + (" " * @padding * @@depth) + message 
+        @out.puts "[#{@source}]" + (" " * @padding * @@depths[@out]) + message 
         @last_message = message
     end
 
