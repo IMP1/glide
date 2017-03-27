@@ -1,7 +1,9 @@
 class Workflow
 
+    @logger = Logger.new("Workflow")
+
     def self.create_workflow(parameters)
-        puts "[Workflow] Creating workflow..."
+        @logger.log("[Workflow] Creating workflow...")
         
     end
 

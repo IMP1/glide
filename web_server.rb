@@ -20,8 +20,9 @@ require 'openssl'
 require 'json'
 require 'date'
 
+require_relative 'log'
 require_relative 'rml'
-require_relative 'glide_api'
+require_relative 'glide_command_handler'
 
 Thread.abort_on_exception=true
 
@@ -53,15 +54,7 @@ class WebServer
 
     def initialize(port)
         @port = port
-        # if File.exists?('keys/google_api')
-        #     @api_key = File.read('keys/google_api')
-        # else
-        #     puts "Could not find 'keys/google_api' file."
-        #     puts "Please create a file (without an extension) in this location."
-        #     puts "This file should contain only your google api key."
-        #     system("pause")
-        #     exit(0)
-        # end
+        @logger = Logger.new("WebServer")
     end
 
     def stop
@@ -76,8 +69,7 @@ class WebServer
         # sslContext.cert = OpenSSL::X509::Certificate.new(File.open("cert.pem"))
         # sslContext.key = OpenSSL::PKey::RSA.new(File.open("priv.pem"))
         # @sslServer = OpenSSL::SSL::SSLServer.new(server, sslContext)
-
-        puts "[WebServer] Listing on localhost:#{@port}..."
+        @logger.log("Listening on localhost:#{@port}")
         @thread = Thread.new { listen }
         @thread.join if block
     end
@@ -92,14 +84,14 @@ class WebServer
     end
 
     def handle_connection(socket)
-        puts "[WebServer] Connected to socket: #{socket}"
+        @logger.log("Connected to socket: #{socket}")
         request = socket.gets
         handle_request(socket, request)
         socket.close
     end
 
     def handle_request(socket, request)
-        puts "[WebServer] Received request: #{request}"
+        @logger.log("Received request: #{request}")
         request_method, *request_parts = request.split(" ")
         path = request_parts[0].split('/')
         case request_method
@@ -131,10 +123,10 @@ class WebServer
         post_body = socket.read(headers["Content-Length"].to_i)
 
         data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
-        GlideAPI.handle_command(path[1], "create", data)
+        new_id = GlideCommandHandler.handle_command(path[1], "create", data)
 
         # TODO: handle data, create new X if valid, returning location to new X.
-        socket.print http_header(201, "Created", {"Location"=>"/workflows/12"})
+        socket.print http_header(201, "Created", {"Location"=>"/#{paths[1]}/#{new_id}"})
         socket.print EMPTY_LINE
     end
 
