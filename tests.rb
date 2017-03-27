@@ -20,12 +20,14 @@ module Tests
         puts "Test Complete."
     end
 
-    def self.test_rhtml
-        puts "Testing RHTML..."
+    def self.test_rml
+        puts "Testing RML..."
         begin
-            uri = URI.parse("http://localhost:2345/test.rhtml")
+            uri = URI.parse("http://localhost:2345/test.rml")
             response = Net::HTTP.get(uri)
+            puts "---Begin Response---"
             puts response
+            puts "---End Response---"
         rescue Exception => e
             puts "rescued exception:"
             p e
