@@ -217,7 +217,8 @@ class WebServer
             # serve_file(socket, [datatype, 'all.rml'], {object_list=>data})
         else
             # serve_file(socket, ["#{datatype}.rml"], {object=>data})
-            serve_file(socket, ['test.rml'], {:id=>data_id})
+            object_name = datatype.end_with?(?s) ? datatype[0..-2] : datatype
+            serve_file(socket, ['test.rml'], {object_name.to_sym=>data})
         end
     end
 
@@ -240,10 +241,12 @@ class WebServer
     end
 
     def file_not_found(socket, message = "File not found")
-        message = message + "\n"
+        message = message
         socket.print http_header(404, "Not Found", {"Content-Type"=>"text/plain", "Content-Length"=>message.size})
         socket.print EMPTY_LINE
         socket.print message
+        socket.print EMPTY_LINE
+        @logger.log(message)
     end
 
     def http_header(status_code, status_message, headers={})
