@@ -129,26 +129,87 @@ class WebServer
         end
         post_body = socket.read(headers["Content-Length"].to_i)
 
+        datatype = path[1]
         data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
-        new_id = GlideCommandHandler.handle_command(path[1], "create", data)
+        new_id = GlideCommandHandler.create(datatype, data)
 
-        # TODO: handle data, create new X if valid, returning location to new X.
-        socket.print http_header(201, "Created", {"Location"=>"/#{path[1]}/#{new_id}"})
-        socket.print EMPTY_LINE
+        if new_id.nil?
+            socket.print http_header(500, "Internal Server Error")
+            socket.print EMPTY_LINE
+        elsif new_id == -1
+            socket.print http_header(409, "Conflict")
+            socket.print EMPTY_LINE
+        else
+            socket.print http_header(201, "Created", {"Location"=>"/#{path[1]}/#{new_id}"})
+            socket.print EMPTY_LINE
+        end
     end
 
     def handle_get(socket, path)
-        serve_file(socket, path)
+        datatype = path[1]
+        data_id = path[2]
+        data_obj = GlideCommandHandler.read(datatype, data_id)
+
+        if data_obj.nil?
+            if data_id.nil?
+                file_not_found(socket, "No #{datatype} found.")
+            else
+                file_not_found(socket, "No #{datatype} with id #{data_id}.")
+            end
+            return
+        end
+
+        serve_data_object(socket, datatype, data_id)
     end
 
     def handle_put(socket, path)
-        socket.print http_header(204, "No Content")
-        socket.print EMPTY_LINE
+        headers = {}
+        loop do
+            line = socket.gets.split(' ', 2)
+            break if line[0] == ""
+            headers[line[0].chop] = line[1].strip
+        end
+        post_body = socket.read(headers["Content-Length"].to_i)
+
+        datatype = path[1]
+        data_id = path[2]
+        data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
+        success = GlideCommandHandler.update(datatype, data_id, data)
+
+        if success.nil?
+            socket.print http_header(500, "Internal Server Error")
+            socket.print EMPTY_LINE
+        elsif success
+            socket.print http_header(204, "No Content")
+            socket.print EMPTY_LINE
+        else
+            file_not_found(socket, "No #{datatype} with id #{data_id}.")
+        end
     end
 
     def handle_delete(socket, path)
-        socket.print http_header(204, "No Content")
-        socket.print EMPTY_LINE
+        datatype = path[1]
+        data_id = path[2]
+        success = GlideCommandHandler.delete(datatype, data_id)
+
+        if success.nil?
+            socket.print http_header(500, "Internal Server Error")
+            socket.print EMPTY_LINE
+        elsif success
+            socket.print http_header(204, "No Content")
+            socket.print EMPTY_LINE
+        else
+            file_not_found(socket, "No #{datatype} with id #{data_id}.")
+        end
+    end
+
+    def serve_data_object(socket, datatype, data_id)
+        data = GlideCommandHandler.read(datatype, data_id)
+        if data_id.nil?
+            
+        else
+
+        end
     end
 
     def serve_file(socket, filepath)
@@ -158,17 +219,19 @@ class WebServer
             return
         end
 
+        content_type = 'text/xml'
         if filepath.last.end_with? ".rml"
-            file_string = RMLParser.new(file_string, filepath.last).parse
+            file_string = RMLParser.new(file_string, filepath.last).parse(variables)
+            content_type = 'text/html'
         end
 
-        socket.print http_header(200, "OK", {"Content-Type"=>'text/xml', "Content-Length"=>file_string.bytesize})
+        socket.print http_header(200, "OK", {"Content-Type"=>content_type, "Content-Length"=>file_string.bytesize})
         socket.print EMPTY_LINE
         socket.print file_string     
     end
 
-    def file_not_found(socket)
-        message = "File not found\n"
+    def file_not_found(socket, message = "File not found")
+        message = message + "\n"
         socket.print http_header(404, "Not Found", {"Content-Type"=>"text/plain", "Content-Length"=>message.size})
         socket.print EMPTY_LINE
         socket.print message
