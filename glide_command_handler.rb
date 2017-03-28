@@ -7,8 +7,7 @@ module GlideCommandHandler
     def self.create(datatype, options)
         case datatype
         when "workflow"
-            workflow_details = args[0]
-            workflow = Workflow.create(workflow_details)
+            workflow = Workflow.create(options)
             return workflow.id
         else
 
@@ -18,20 +17,17 @@ module GlideCommandHandler
     def self.read(datatype, id)
         case datatype
         when "workflow"
-            workflow_id = args[0]
-            workflow = Workflow.read(workflow_id)
-            return workflow
+            workflow = Workflow.read(id)
+            return workflow, nil
         else
-
+            return nil, "'#{datatype}' not recognised."
         end
     end
 
     def self.update(datatype, id, options)
         case datatype
         when "workflow"
-            workflow_id = args[0]
-            workflow_details = args[1]
-            success = Workflow.update(workflow_id, workflow_details)
+            success = Workflow.update(id, options)
             return success
         else
 
@@ -41,8 +37,7 @@ module GlideCommandHandler
     def self.delete(datatype, id)
         case datatype
         when "workflow"
-            workflow_id = args[0]
-            success = Workflow.delete(workflow_id)
+            success = Workflow.delete(id)
             return success
         else
 
