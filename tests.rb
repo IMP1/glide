@@ -1,7 +1,7 @@
 module Tests
 
     def self.test_post
-        puts "Testing HTTP POST..."
+        puts "<Test> Testing HTTP POST..."
         begin
             uri = URI.parse("http://localhost:2345/workflows/")
             # Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https', :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |http|
@@ -15,14 +15,14 @@ module Tests
             end
             sleep(0.5)    
         rescue Exception => e
-            puts "rescued exception:"
+            puts "<Test> Rescued exception:"
             p e
         end
-        puts "Test Complete."
+        puts "<Test> Test Complete."
     end
 
     def self.test_rml
-        puts "Testing RML..."
+        puts "<Test> Testing RML..."
         begin
             uri = URI.parse("http://localhost:2345/test.rml")
             response = Net::HTTP.get(uri)
@@ -30,10 +30,10 @@ module Tests
             puts response
             puts "---End Response---"
         rescue Exception => e
-            puts "rescued exception:"
+            puts "<Test> Rescued exception:"
             p e
         end
-        puts "Test Complete."
+        puts "<Test> Test Complete."
     end
 
 end
