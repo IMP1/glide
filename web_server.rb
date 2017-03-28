@@ -148,16 +148,20 @@ class WebServer
     def handle_get(socket, path)
         datatype = path[1]
         data_id = path[2]
-        data_obj = GlideCommandHandler.read(datatype, data_id)
+        data_obj, error_message = GlideCommandHandler.read(datatype, data_id)
 
-        if data_obj.nil?
-            if data_id.nil?
-                file_not_found(socket, "No #{datatype} found.")
-            else
-                file_not_found(socket, "No #{datatype} with id #{data_id}.")
-            end
-            return
-        end
+        # if data_obj.nil?
+        #     if !error_message.nil?
+        #         message = error_message
+        #     elsif data_id.nil?
+        #         message = "No #{datatype} found."
+        #     else
+        #         message = "No #{datatype} with id #{data_id}."
+        #     end
+        #     @logger.log(message, Logger::ERROR)
+        #     file_not_found(socket, message)
+        #     return
+        # end
 
         serve_data_object(socket, datatype, data_id)
     end
@@ -183,7 +187,9 @@ class WebServer
             socket.print http_header(204, "No Content")
             socket.print EMPTY_LINE
         else
-            file_not_found(socket, "No #{datatype} with id #{data_id}.")
+            message = "No #{datatype} with id #{data_id}."
+            @logger.log(message, Logger::ERROR)
+            file_not_found(socket, message)
         end
     end
 
@@ -199,7 +205,9 @@ class WebServer
             socket.print http_header(204, "No Content")
             socket.print EMPTY_LINE
         else
-            file_not_found(socket, "No #{datatype} with id #{data_id}.")
+            message = "No #{datatype} with id #{data_id}."
+            @logger.log(message, Logger::ERROR)
+            file_not_found(socket, message)
         end
     end
 
@@ -209,7 +217,7 @@ class WebServer
             # serve_file(socket, [datatype, 'all.rml'], {object_list=>data})
         else
             # serve_file(socket, ["#{datatype}.rml"], {object=>data})
-            serve_file(socket, ['test.rml'], {id=>data_id})
+            serve_file(socket, ['test.rml'], {:id=>data_id})
         end
     end
 
