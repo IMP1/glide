@@ -10,11 +10,11 @@ class RMLParser
         @logger = Logger.new("RML Parser")
     end
 
-    def parse
+    def parse(variables)
         @logger.push("Beginning Parse...")
         add_included_files
         handle_blocks
-        eval_ruby
+        eval_ruby(variables)
         @logger.pop("Successful Parse.")
         return @string
     end
@@ -59,7 +59,8 @@ class RMLParser
         return @string
     end
 
-    def eval_ruby
+    def eval_ruby(variables)
+        @view_bag = variables
         alias puts_inspect p  # Save p in a local method
         alias p print_to_html # Overwrite p to print to the html
         @string.scan(/<ruby>.+?<\/ruby>/m).each do |m|

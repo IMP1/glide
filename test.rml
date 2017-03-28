@@ -17,6 +17,7 @@
         <ruby>
             p @foo
             p "green bottles on a wall"
+            p @view_bag.inspect
         </ruby>
     </div>
 <ruby block-end="main">
