@@ -6,7 +6,7 @@ require_relative 'tests'
 webserver = WebServer.new(2345)
 webserver.begin
 
-Tests.test_rml
+Tests.test_get
 Tests.test_post
 
 # puts
