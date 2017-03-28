@@ -32,8 +32,9 @@ module Workflow
         @@logger.log("Retrieving workflow #{id}...")
         begin
             if exists?(id)
-                # TODO: update workflow
-                return true
+                workflow = nil
+                # TODO: retrieve workflow
+                return workflow
             else
                 return nil
             end
@@ -74,7 +75,7 @@ module Workflow
     end
 
     def self.exists?(id)
-
+        return false # TODO: make this check the database.
     end
 
 end
