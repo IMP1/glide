@@ -206,13 +206,14 @@ class WebServer
     def serve_data_object(socket, datatype, data_id)
         data = GlideCommandHandler.read(datatype, data_id)
         if data_id.nil?
-            
+            # serve_file(socket, [datatype, 'all.rml'], {object_list=>data})
         else
-
+            # serve_file(socket, ["#{datatype}.rml"], {object=>data})
+            serve_file(socket, ['test.rml'], {id=>data_id})
         end
     end
 
-    def serve_file(socket, filepath)
+    def serve_file(socket, filepath, variables)
         file_string = WebServer.file_contents(filepath)
         if file_string.nil?
             file_not_found(socket)
