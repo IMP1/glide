@@ -21,7 +21,7 @@ module Tests
         puts "<Test> Test Complete."
     end
 
-    def self.test_rml
+    def self.test_get
         puts "<Test> Testing RML..."
         begin
             uri = URI.parse("http://localhost:2345/workflow/1")
