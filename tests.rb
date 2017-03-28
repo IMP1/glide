@@ -24,7 +24,7 @@ module Tests
     def self.test_rml
         puts "<Test> Testing RML..."
         begin
-            uri = URI.parse("http://localhost:2345/test.rml")
+            uri = URI.parse("http://localhost:2345/workflow/1")
             response = Net::HTTP.get(uri)
             puts "---Begin Response---"
             puts response
