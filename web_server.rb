@@ -47,7 +47,14 @@ class WebServer
         clean = []
         filepath.each do |part|
             next if part.empty? || part == '.'
-            part == '..' ? clean.pop : clean.push(part)
+            case part
+            when '..'
+                clean.pop
+            when '~'
+                clean.push(WEB_ROOT)
+            else
+                clean.push(part)
+            end
         end
         return clean
     end
