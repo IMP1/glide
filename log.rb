@@ -40,7 +40,7 @@ class Logger
 
     def log_message(message, importance)
         return if importance > @importance_level
-        @out.puts "[#{@source}]" + (" " * @padding * @@depths[@out]) + message 
+        @out.puts "[#{@source}] " + (" " * @padding * @@depths[@out]) + message 
         @last_message = message
     end
 
