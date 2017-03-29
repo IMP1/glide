@@ -1,3 +1,6 @@
+
+## http://sequel.jeremyevans.net/
+
 module Workflow
 
     @@logger = Logger.new("Workflow")
