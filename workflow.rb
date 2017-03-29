@@ -16,7 +16,7 @@ module Workflow
     end
 
     def self.all
-        @@logger.log("Retrieving all workflows...")
+        @@logger.log("Retrieving all workflows.")
         begin
             all_workflows = [] # TODO: remove this and have it obtained from the database.
             # TODO: add workflow to database.
@@ -29,7 +29,7 @@ module Workflow
 
     def self.read(id)
         return all if id.nil?
-        @@logger.log("Retrieving workflow #{id}...")
+        @@logger.log("Retrieving workflow #{id}.")
         begin
             if exists?(id)
                 workflow = nil
@@ -45,7 +45,7 @@ module Workflow
     end
 
     def self.update(id, details)
-        @@logger.log("Updating workflow #{id}...")
+        @@logger.log("Updating workflow #{id}.")
         begin
             if exists?(id)
                 # TODO: update workflow
@@ -60,7 +60,7 @@ module Workflow
     end
 
     def self.delete(id)
-        @@logger.log("Deleting workflow #{id}...")
+        @@logger.log("Deleting workflow #{id}.")
         begin
             if exists?(id)
                 # TODO: delete workflow
