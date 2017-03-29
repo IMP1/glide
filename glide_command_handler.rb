@@ -7,48 +7,45 @@ module GlideCommandHandler
     def self.create(datatype, options)
         case datatype
         when "workflows"
-            workflow_id = Workflow.create(options)
-            return workflow_id
+            return Workflow.create(options)
         else
-            error_message = "'#{datatype}' not recognised. Cannot create."
-            @logger.log(error_message, Logger::ERROR)
-            return nil, error_message
+            return nil
         end
     end
 
     def self.read(datatype, id)
         case datatype
         when "workflows"
-            workflow = Workflow.read(id)
-            return workflow, nil
+            return Workflow.read(id)
         else
-            error_message = "'#{datatype}' not recognised. Cannot read."
-            @logger.log(error_message, Logger::ERROR)
-            return nil, error_message
+            return nil
         end
     end
 
     def self.update(datatype, id, options)
         case datatype
         when "workflows"
-            success = Workflow.update(id, options)
-            return success
+            return Workflow.update(id, options)
         else
-            error_message = "'#{datatype}' not recognised. Cannot update."
-            @logger.log(error_message, Logger::ERROR)
-            return nil, error_message
+            return nil
         end
     end
 
     def self.delete(datatype, id)
         case datatype
         when "workflows"
-            success = Workflow.delete(id)
-            return success
+            return Workflow.delete(id)
         else
-            error_message = "'#{datatype}' not recognised. Cannot delete."
-            @logger.log(error_message, Logger::ERROR)
-            return nil, error_message
+            return nil
+        end
+    end
+
+    def self.exists?(datatype, id)
+        case datatype
+        when "workflows"
+            return Workflow.exists?(id)
+        else
+            return nil
         end
     end
 

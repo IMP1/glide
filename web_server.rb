@@ -101,17 +101,21 @@ class WebServer
         @logger.log("Received request: #{request}")
         request_method, *request_parts = request.split(" ")
         path = request_parts[0].split('/')
-        case request_method
-        when "HEAD"
-            handle_head(socket, path)
-        when "POST"
-            handle_post(socket, path)
-        when "GET"
-            handle_get(socket, path)
-        when "PUT"
-            handle_put(socket, path)
-        when "DELETE"
-            handle_delete(socket, path)
+        begin
+            case request_method
+            when "HEAD"
+                handle_head(socket, path)
+            when "POST"
+                handle_post(socket, path)
+            when "GET"
+                handle_get(socket, path)
+            when "PUT"
+                handle_put(socket, path)
+            when "DELETE"
+                handle_delete(socket, path)
+            end
+        rescue Exception => e
+            server_error(socket, "An internal error occurred. You've done nothing wrong. Try again in a bit.")
         end
     end
 
@@ -130,44 +134,49 @@ class WebServer
         post_body = socket.read(headers["Content-Length"].to_i)
 
         datatype = path[1]
+        data_id = path[2]
+        specific_item = !data_id.nil?
         data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
-        new_id = GlideCommandHandler.create(datatype, data)
 
-        if new_id.nil?
-            socket.print http_header(500, "Internal Server Error")
-            socket.print EMPTY_LINE
-        elsif new_id == -1
-            socket.print http_header(409, "Conflict")
-            socket.print EMPTY_LINE
+        if specific_item
+            exists = GlideCommandHandler.exists?(datatype, data_id)
+            if exists.nil?
+                bad_request(socket, "'#{datatype}' not recognised. Cannot create.")
+            elsif exists == false
+                file_not_found(socket)
+            else
+                socket.print http_header(409, "Conflict")
+                socket.print EMPTY_LINE
+            end
         else
-            socket.print http_header(201, "Created", {"Location"=>"/#{path[1]}/#{new_id}"})
-            socket.print EMPTY_LINE
+            new_id = GlideCommandHandler.create(datatype, data)
+            if new_id.nil?
+                bad_request(socket, "'#{datatype}' not recognised. Cannot create.")
+            else
+                socket.print http_header(201, "Created", {"Location"=>"/#{path[1]}/#{new_id}"})
+                socket.print EMPTY_LINE
+            end
         end
     end
 
     def handle_get(socket, path)
         datatype = path[1]
         data_id = path[2]
+        all_of_datatype = data_id.nil?
 
-        data_obj, error_message = GlideCommandHandler.read(datatype, data_id)
+        data_obj = GlideCommandHandler.read(datatype, data_id)
         @logger.log("Data Object = #{data_obj.inspect}", Logger::DEBUG)
 
-        # if data_obj.nil?
-        #     if !error_message.nil?
-        #         message = error_message
-        #     elsif data_id.nil?
-        #         message = "No #{datatype} found."
-        #     else
-        #         message = "No #{datatype} with id #{data_id}."
-        #     end
-        #     @logger.log(message, Logger::ERROR)
-        #     file_not_found(socket, message)
-        #     return
-        # end
+        if data_obj.nil?
+            bad_request(socket, "'#{datatype}' not recognised. Cannot read.")
+            return
+        elsif data_obj == false
+            file_not_found(socket, "No #{datatype} with id #{data_id}.")
+            return
+        end
 
-        data, error_message = GlideCommandHandler.read(datatype, data_id)
-        if data_id.nil?
-            # serve_file(socket, [datatype, 'all.rml'], {datatype.to_sym=>data_obj})
+        if all_of_datatype
+            serve_file(socket, [datatype, 'all.rml'], {datatype.to_sym=>data_obj})
         else
             object_name = datatype.end_with?(?s) ? datatype[0..-2] : datatype
             # serve_file(socket, ["#{datatype}.rml"], {object_name.to_sym=>data_obj})
@@ -187,37 +196,37 @@ class WebServer
         datatype = path[1]
         data_id = path[2]
         data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
+
         success = GlideCommandHandler.update(datatype, data_id, data)
 
         if success.nil?
-            socket.print http_header(500, "Internal Server Error")
-            socket.print EMPTY_LINE
-        elsif success
-            socket.print http_header(204, "No Content")
-            socket.print EMPTY_LINE
-        else
-            message = "No #{datatype} with id #{data_id}."
-            @logger.log(message, Logger::ERROR)
-            file_not_found(socket, message)
+            bad_request(socket, "'#{datatype}' not recognised. Cannot update.")
+            return
+        elsif success == false
+            file_not_found(socket, "No #{datatype} with id #{data_id}.")
+            return
         end
+
+        socket.print http_header(204, "No Content")
+        socket.print EMPTY_LINE
     end
 
     def handle_delete(socket, path)
         datatype = path[1]
         data_id = path[2]
+
         success = GlideCommandHandler.delete(datatype, data_id)
 
         if success.nil?
-            socket.print http_header(500, "Internal Server Error")
-            socket.print EMPTY_LINE
-        elsif success
-            socket.print http_header(204, "No Content")
-            socket.print EMPTY_LINE
-        else
-            message = "No #{datatype} with id #{data_id}."
-            @logger.log(message, Logger::ERROR)
-            file_not_found(socket, message)
+            bad_request(socket, "'#{datatype}' not recognised. Cannot delete.")
+            return
+        elsif success == false
+            file_not_found(socket, "No #{datatype} with id #{data_id}.")
+            return
         end
+
+        socket.print http_header(204, "No Content")
+        socket.print EMPTY_LINE
     end
 
     def serve_file(socket, filepath, variables)
@@ -236,15 +245,31 @@ class WebServer
         file_string += EMPTY_LINE
         socket.print http_header(200, "OK", {"Content-Type"=>content_type, "Content-Length"=>file_string.bytesize})
         socket.print EMPTY_LINE
-        socket.print file_string     
+        socket.print file_string
     end
 
-    def file_not_found(socket, message = "File not found")
+    def file_not_found(socket, message="File not found")
         message += EMPTY_LINE
         socket.print http_header(404, "Not Found", {"Content-Type"=>"text/plain", "Content-Length"=>message.size})
         socket.print EMPTY_LINE
         socket.print message
-        @logger.log(message)
+        @logger.log(message, Logger::DEBUG)
+    end
+
+    def bad_request(socket, message="Bad Request")
+        message += EMPTY_LINE
+        socket.print http_header(400, "Bad Request", {"Content-Type"=>"text/plain", "Content-Length"=>message.size})
+        socket.print EMPTY_LINE
+        socket.print message
+        @logger.log(message, Logger::DEBUG)
+    end
+
+    def server_error(socket, message="Internal Server Error")
+        message += EMPTY_LINE
+        socket.print http_header(500, "Internal Server Error", {"Content-Type"=>"text/plain", "Content-Length"=>message.size})
+        socket.print EMPTY_LINE
+        socket.print message
+        @logger.log(message, Logger::ERROR)
     end
 
     def http_header(status_code, status_message, headers={})
