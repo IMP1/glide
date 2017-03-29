@@ -15,6 +15,7 @@ class RMLParser
         add_included_files
         handle_blocks
         eval_ruby(variables)
+        fix_indentation
         @logger.pop("Successful Parse.")
         return @string
     end
@@ -71,6 +72,14 @@ class RMLParser
         end
         alias p puts_inspect  # Restore p
         return @string
+    end
+
+    def fix_indentation
+        lines = @string.split("\n")
+        lines = lines.select { |line| !line.strip.empty? }
+        
+
+        @string = lines.join("\n")
     end
 
     def print_to_html(arg)
