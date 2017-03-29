@@ -10,8 +10,9 @@ module Tests
                 request.basic_auth 'username', 'password'
                 request.set_form_data({"q" => "My query", "per_page" => "50"})
                 response = http.request(request)
-                p response
-                puts response.body
+                puts "---Begin Response Head---"
+                response.header.each_header { |k, v| puts "#{k}: #{v.inspect}" }
+                puts "---End Response---"
             end
             sleep(0.5)    
         rescue Exception => e
@@ -22,11 +23,11 @@ module Tests
     end
 
     def self.test_get
-        puts "<Test> Testing RML..."
+        puts "<Test> Testing GET (workflow 1)..."
         begin
             uri = URI.parse("http://localhost:2345/workflows/1")
             response = Net::HTTP.get(uri)
-            puts "---Begin Response---"
+            puts "---Begin Response Body---"
             puts response
             puts "---End Response---"
         rescue Exception => e
