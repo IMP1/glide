@@ -115,6 +115,7 @@ class WebServer
                 handle_delete(socket, path)
             end
         rescue Exception => e
+            @logger.log(e.to_s, Logger::ERROR)
             server_error(socket, "An internal error occurred. You've done nothing wrong. Try again in a bit.")
         end
     end
