@@ -148,7 +148,9 @@ class WebServer
     def handle_get(socket, path)
         datatype = path[1]
         data_id = path[2]
+
         data_obj, error_message = GlideCommandHandler.read(datatype, data_id)
+        @logger.log("Data Object = #{data_obj.inspect}", Logger::DEBUG)
 
         # if data_obj.nil?
         #     if !error_message.nil?
@@ -163,7 +165,14 @@ class WebServer
         #     return
         # end
 
-        serve_data_object(socket, datatype, data_id)
+        data, error_message = GlideCommandHandler.read(datatype, data_id)
+        if data_id.nil?
+            # serve_file(socket, [datatype, 'all.rml'], {datatype.to_sym=>data_obj})
+        else
+            object_name = datatype.end_with?(?s) ? datatype[0..-2] : datatype
+            # serve_file(socket, ["#{datatype}.rml"], {object_name.to_sym=>data_obj})
+            serve_file(socket, ['test.rml'], {object_name.to_sym=>data_obj})
+        end
     end
 
     def handle_put(socket, path)
@@ -211,17 +220,6 @@ class WebServer
         end
     end
 
-    def serve_data_object(socket, datatype, data_id)
-        data = GlideCommandHandler.read(datatype, data_id)
-        if data_id.nil?
-            # serve_file(socket, [datatype, 'all.rml'], {object_list=>data})
-        else
-            # serve_file(socket, ["#{datatype}.rml"], {object=>data})
-            object_name = datatype.end_with?(?s) ? datatype[0..-2] : datatype
-            serve_file(socket, ['test.rml'], {object_name.to_sym=>data})
-        end
-    end
-
     def serve_file(socket, filepath, variables)
         file_string = WebServer.file_contents(filepath)
         if file_string.nil?
@@ -235,17 +233,17 @@ class WebServer
             content_type = 'text/html'
         end
 
+        file_string += EMPTY_LINE
         socket.print http_header(200, "OK", {"Content-Type"=>content_type, "Content-Length"=>file_string.bytesize})
         socket.print EMPTY_LINE
         socket.print file_string     
     end
 
     def file_not_found(socket, message = "File not found")
-        message = message
+        message += EMPTY_LINE
         socket.print http_header(404, "Not Found", {"Content-Type"=>"text/plain", "Content-Length"=>message.size})
         socket.print EMPTY_LINE
         socket.print message
-        socket.print EMPTY_LINE
         @logger.log(message)
     end
 
