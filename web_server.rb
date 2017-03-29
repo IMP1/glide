@@ -179,8 +179,7 @@ class WebServer
             serve_file(socket, [datatype, 'all.rml'], {datatype.to_sym=>data_obj})
         else
             object_name = datatype.end_with?(?s) ? datatype[0..-2] : datatype
-            # serve_file(socket, ["#{datatype}.rml"], {object_name.to_sym=>data_obj})
-            serve_file(socket, ['test.rml'], {object_name.to_sym=>data_obj})
+            serve_file(socket, ["#{datatype}.rml"], {object_name.to_sym=>data_obj})
         end
     end
 
