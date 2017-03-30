@@ -77,7 +77,23 @@ class RMLParser
     def fix_indentation
         lines = @string.split("\n")
         lines = lines.select { |line| !line.strip.empty? }
-        
+        string_copy = @string
+        opening_tags = []
+        loop do
+            tag_name = ""
+            string_copy.scan(/<([\w\-]+)[\s\w\-\="']*?>.*?<\/\1>/m) do |m|
+                tag_name = m[0]
+                p tag_name
+                p tag_name.size
+                p string_copy.index(tag_name)
+                i = string_copy.index(tag_name) + tag_name.size
+                p i
+                string_copy = string_copy[i..-1]
+                opening_tags.push tag_name if !['html'].include? tag_name
+            end
+            break if tag_name == ""
+        end
+        p opening_tags
 
         @string = lines.join("\n")
     end
