@@ -101,18 +101,20 @@ class WebServer
         @logger.log("Received request: #{request}")
         request_method, *request_parts = request.split(" ")
         path = request_parts[0].split('/')
+        datatype = path[1]
+        data_id = path[2].nil? ? nil : path[2].to_i
         begin
             case request_method
             when "HEAD"
-                handle_head(socket, path)
+                handle_head(socket, datatype, data_id)
             when "POST"
-                handle_post(socket, path)
+                handle_post(socket, datatype, data_id)
             when "GET"
-                handle_get(socket, path)
+                handle_get(socket, datatype, data_id)
             when "PUT"
-                handle_put(socket, path)
+                handle_put(socket, datatype, data_id)
             when "DELETE"
-                handle_delete(socket, path)
+                handle_delete(socket, datatype, data_id)
             end
         rescue Exception => e
             @logger.log(e.to_s, Logger::ERROR)
@@ -120,12 +122,12 @@ class WebServer
         end
     end
 
-    def handle_head(socket, path)
+    def handle_head(socket, datatype, data_id)
         socket.print http_header(204, "No Content")
         socket.print EMPTY_LINE
     end
 
-    def handle_post(socket, path)
+    def handle_post(socket, datatype, data_id)
         headers = {}
         loop do
             line = socket.gets.split(' ', 2)
@@ -134,8 +136,6 @@ class WebServer
         end
         post_body = socket.read(headers["Content-Length"].to_i)
 
-        datatype = path[1]
-        data_id = path[2]
         specific_item = !data_id.nil?
         data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
 
@@ -154,15 +154,13 @@ class WebServer
             if new_id.nil?
                 bad_request(socket, "'#{datatype}' not recognised. Cannot create.")
             else
-                socket.print http_header(201, "Created", {"Location"=>"/#{path[1]}/#{new_id}"})
+                socket.print http_header(201, "Created", {"Location"=>"/#{datatype}/#{new_id}"})
                 socket.print EMPTY_LINE
             end
         end
     end
 
-    def handle_get(socket, path)
-        datatype = path[1]
-        data_id = path[2]
+    def handle_get(socket, datatype, data_id)
         all_of_datatype = data_id.nil?
 
         data_obj = GlideCommandHandler.read(datatype, data_id)
@@ -180,11 +178,11 @@ class WebServer
             serve_file(socket, [datatype, 'all.rml'], {datatype.to_sym=>data_obj})
         else
             object_name = datatype.end_with?(?s) ? datatype[0..-2] : datatype
-            serve_file(socket, ["#{datatype}.rml"], {object_name.to_sym=>data_obj})
+            serve_file(socket, ["#{datatype}.rml"], {:id=>data_id, object_name.to_sym=>data_obj})
         end
     end
 
-    def handle_put(socket, path)
+    def handle_put(socket, datatype, data_id)
         headers = {}
         loop do
             line = socket.gets.split(' ', 2)
@@ -193,8 +191,6 @@ class WebServer
         end
         post_body = socket.read(headers["Content-Length"].to_i)
 
-        datatype = path[1]
-        data_id = path[2]
         data = Hash[post_body.split(/\&/).map{ |pair| pair.split("=") }]
 
         success = GlideCommandHandler.update(datatype, data_id, data)
@@ -211,9 +207,7 @@ class WebServer
         socket.print EMPTY_LINE
     end
 
-    def handle_delete(socket, path)
-        datatype = path[1]
-        data_id = path[2]
+    def handle_delete(socket, datatype, data_id)
 
         success = GlideCommandHandler.delete(datatype, data_id)
 
