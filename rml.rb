@@ -15,7 +15,7 @@ class RMLParser
         add_included_files
         handle_blocks
         eval_ruby(variables)
-        fix_indentation
+        fix_formatting
         @logger.pop("Successful Parse.")
         return @string
     end
@@ -74,27 +74,37 @@ class RMLParser
         return @string
     end
 
-    def fix_indentation
-        lines = @string.split("\n")
-        lines = lines.select { |line| !line.strip.empty? }
+    def fix_formatting
         string_copy = @string
         opening_tags = []
         loop do
-            tag_name = ""
-            string_copy.scan(/<([\w\-]+)[\s\w\-\="']*?>.*?<\/\1>/m) do |m|
-                tag_name = m[0]
-                p tag_name
-                p tag_name.size
-                p string_copy.index(tag_name)
-                i = string_copy.index(tag_name) + tag_name.size
-                p i
-                string_copy = string_copy[i..-1]
-                opening_tags.push tag_name if !['html'].include? tag_name
-            end
-            break if tag_name == ""
+            tag_name = string_copy[/<([\w\-]+).*?>.*?<\/\1>/m, 1]
+            break if tag_name.nil?
+            i = string_copy.index(tag_name) + tag_name.size
+            string_copy = string_copy[i..-1]
+            opening_tags.push tag_name if !['html'].include? tag_name
         end
         p opening_tags
+        closing_tags = []
 
+        @string.gsub!(/\n\s*\n?/m, "\n")
+
+        lines = @string.split("\n")
+        depth = 0
+        lines.map! do |line|
+            padding = " " * (depth * 4)
+            if opening_tags.size > 0 && line.include?("<#{opening_tags.first}")
+                tag_name = opening_tags.delete_at(0)
+                depth += 1
+                closing_tags.push(tag_name)
+            end
+            if closing_tags.size > 0 && line.include?("</#{closing_tags.last}")
+                closing_tags.pop
+                depth -= 1
+                padding = " " * (depth * 4)
+            end
+            padding + line
+        end
         @string = lines.join("\n")
     end
 
