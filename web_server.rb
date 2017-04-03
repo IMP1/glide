@@ -154,7 +154,7 @@ class WebServer
             if new_id.nil?
                 bad_request(socket, "'#{datatype}' not recognised. Cannot create.")
             else
-                socket.print http_header(201, "Created", {"Location"=>"/#{datatype}/#{new_id}"})
+                socket.print http_header(201, "Created", {"Location"=>"#{datatype}/#{new_id}"})
                 socket.print EMPTY_LINE
             end
         end

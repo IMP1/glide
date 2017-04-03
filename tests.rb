@@ -13,8 +13,8 @@ module Tests
                 puts "---Begin Response Head---"
                 response.header.each_header { |k, v| puts "#{k}: #{v.inspect}" }
                 puts "---End Response---"
+                return response.header["location"]
             end
-            sleep(0.5)    
         rescue Exception => e
             puts "<Test> Rescued exception:"
             p e
@@ -22,10 +22,10 @@ module Tests
         puts "<Test> Test Complete."
     end
 
-    def self.test_get
+    def self.test_get(location)
         puts "<Test> Testing GET (workflow 1)..."
         begin
-            uri = URI.parse("http://localhost:2345/workflows/1")
+            uri = URI.parse("http://localhost:2345/#{location}")
             response = Net::HTTP.get(uri)
             puts "---Begin Response Body---"
             puts response

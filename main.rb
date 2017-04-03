@@ -6,8 +6,8 @@ require_relative 'tests'
 webserver = WebServer.new(2345)
 webserver.begin
 
-Tests.test_get
-Tests.test_post
+location = Tests.test_post
+Tests.test_get(location)
 
 # puts
 # loop do

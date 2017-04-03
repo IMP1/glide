@@ -8,7 +8,7 @@ module Workflow
     def self.create(details)
         @@logger.log("Creating workflow.", Logger::DEBUG)
         begin
-            id = 0 # TODO: remove this and have it obtained from the database.
+            id = 1 # TODO: remove this and have it obtained from the database.
             # TODO: add workflow to database.
             return id
         rescue Exception => e
