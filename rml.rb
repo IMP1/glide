@@ -84,7 +84,6 @@ class RMLParser
             string_copy = string_copy[i..-1]
             opening_tags.push tag_name if !['html'].include? tag_name
         end
-        p opening_tags
         closing_tags = []
 
         @string.gsub!(/\n\s*\n?/m, "\n")
