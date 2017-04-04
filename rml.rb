@@ -63,7 +63,7 @@ class RMLParser
     def eval_ruby(variables)
         @view_bag = variables
         alias puts_inspect p  # Save p in a local method
-        alias p print_to_html # Overwrite p to print to the html
+        define_singleton_method("p"){ |arg| @current_output.push(arg) }
         @string.scan(/<ruby>.+?<\/ruby>/m).each do |m|
             @current_output = []
             code = m[6..-8]
@@ -118,10 +118,6 @@ class RMLParser
             end
         end
         @string = lines.join("\n")
-    end
-
-    def print_to_html(arg)
-        @current_output.push(arg)
     end
 
 end
